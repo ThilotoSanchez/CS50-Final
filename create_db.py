@@ -4,8 +4,7 @@ def create_new_db():
     conn = sqlite3.connect('cov19db.sqlite')
     cur = conn.cursor()
 
-    # set up table
-    
+    # set up tables
     
     cur.executescript('''
     CREATE TABLE countries (
