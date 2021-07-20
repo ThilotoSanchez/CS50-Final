@@ -23,8 +23,8 @@ def create_new_db():
         critical     INTEGER,
         recovered     INTEGER,
         '1M_POP'     TEXT,
-        day     TEXT,
-        time     TEXT
+        daytime     DATE,
+        UNIQUE(country_id, daytime)
     );
 
     CREATE TABLE IF NOT EXISTS tests (
@@ -32,8 +32,8 @@ def create_new_db():
         country_id     INTEGER,
         total     INTEGER,
         '1M_POP'     TEXT,
-        day     TEXT,
-        time     TEXT
+        daytime     DATE,
+        UNIQUE(country_id, daytime)
     );
 
     CREATE TABLE IF NOT EXISTS deaths (
@@ -42,14 +42,15 @@ def create_new_db():
         total     INTEGER,
         new     TEXT,
         '1M_POP'     TEXT,
-        day     TEXT,
-        time     TIME
+        daytime     DATE,
+        UNIQUE(country_id, daytime)
     );
 
     CREATE TABLE IF NOT EXISTS user (
         id     INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
         username     TEXT UNIQUE,
-        pw_hash     TEXT
+        pw_hash     TEXT,
+        created     DATE
     )
     ''')
 
