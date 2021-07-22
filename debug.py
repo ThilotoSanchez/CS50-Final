@@ -1,15 +1,16 @@
-from datetime import datetime
+import requests
+import json
 import sqlite3
+import os
+from icecream import ic
+from requests.exceptions import HTTPError
+from flask import redirect, render_template, request, session
+from dotenv import load_dotenv
+from datetime import datetime
+from functools import wraps
 
-# get SQLITE3 ready
-conn = sqlite3.connect('cov19db.sqlite')
-cur = conn.cursor()
+load_dotenv()
 
-time_str = "2021-05-03T22:45:02+00:00"
 
-date_time_obj = datetime.strptime(time_str, '%Y-%m-%dT%H:%M:%S+%f:00')
 
-cur.execute('''INSERT OR IGNORE INTO cases
-                ( daytime ) VALUES ( ? )''',
-                ( date_time_obj, ))
-conn.commit()
+statistics("Germany")

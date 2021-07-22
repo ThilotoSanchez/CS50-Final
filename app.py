@@ -1,13 +1,17 @@
 from flask import Flask, flash, redirect, render_template, request, session
 from flask_session import Session
 from icecream import ic
+import json
+from urllib.request import urlopen
+import pytz
 from tempfile import mkdtemp
 from werkzeug.exceptions import default_exceptions, HTTPException, InternalServerError
 from werkzeug.security import check_password_hash, generate_password_hash
-from datetime import datetime
+from datetime import datetime, date
+import itertools
 import sqlite3
 
-from helpers import login_required, apology, getCountries, statistics, history
+from helpers import login_required, apology, getCountries, getStatistics, getHistory, countriesDB
 
 # configure application
 app = Flask(__name__)
@@ -24,11 +28,11 @@ Session(app)
 if __name__ == '__main__':
     app.run(debug=True)
 
-# get SQLITE3 ready
-conn = sqlite3.connect('cov19db.sqlite')
-db = conn.cursor()
+today = date.today()
+today = today.strftime("%d/%m/%Y")
+ic(today)
 
-@app.route('/', methods=["GET"])
+@app.route('/', methods=["GET", "POST"])
 @login_required
 def index():
 
@@ -37,8 +41,46 @@ def index():
         # if values from today: use those values
         # else: make API request to update db
 
-        return render_template("index.html")
-        # return render_template("index.html", )
+        # load countries from db
+        COUNTRIES = countriesDB()
+
+        # check if user already has cookie
+        if session.get('country'):
+            COUNTRY = session.get('country')
+            print("User had country cookie:", COUNTRY)
+        else:
+            # get user location
+            # pytz transfers country ISO code into country name
+            url = 'http://ipinfo.io/json'
+            response = urlopen(url)
+            location = json.load(response)
+            COUNTRY = location['country']
+            COUNTRY = pytz.country_names[COUNTRY]
+            ic(COUNTRY)
+
+            if COUNTRY not in COUNTRIES:
+                COUNTRY = "Switzerland"
+                print("Country wasn't supported. We set it to Switzerland.")
+
+            # set cookie in order to customize frontend
+            session['country'] = COUNTRY
+
+        return render_template("index.html", country=COUNTRY, countries=COUNTRIES)
+
+    # user coming via POST
+    else:
+        # load countries from db
+        COUNTRIES = countriesDB()
+
+        COUNTRY = request.form.get("countries")
+
+        if COUNTRY not in COUNTRIES:
+            return apology("country has no data yet", 404)
+        
+        session['country'] = COUNTRY
+
+        # Redirect user to home page
+        return redirect("/")
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -112,10 +154,6 @@ def login():
         db.execute("SELECT * FROM user WHERE username = ?", (request.form.get("username"),))
         rows = list(db.fetchall())
         conn.commit()
-
-        ic(type(rows))
-        ic(rows)
-        ic(len(rows))
 
         # Ensure username exists and password is correct
         if len(rows) != 1 or not check_password_hash(rows[0][2], request.form.get("password")):

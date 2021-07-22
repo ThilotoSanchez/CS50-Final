@@ -8,6 +8,9 @@ from flask import redirect, render_template, request, session
 from dotenv import load_dotenv
 from datetime import datetime
 from functools import wraps
+from urllib.request import urlopen
+import pytz
+import itertools
 
 # ! Delrecated method, do not use
 # ? Questions?
@@ -17,7 +20,7 @@ load_dotenv()
 
 # get SQLITE3 ready
 conn = sqlite3.connect('cov19db.sqlite')
-cur = conn.cursor()
+db = conn.cursor()
 
 def apology(message, code=400):
     """Render message as an apology to user."""
@@ -46,8 +49,11 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-def getCountries(country):
-    url = "https://covid-193.p.rapidapi.com/countries"
+def getCountries():
+    url = "https://covid-193.p.rapidapi.com/statistics"
+
+    # optional country parameter
+    # querystring = {"country": country}
 
     headers = {
         'x-rapidapi-key': os.getenv('x-rapidapi-key'),
@@ -60,21 +66,30 @@ def getCountries(country):
 
         # use builtin JSON decoder
         jsonResponse = response.json()
-                
-        #print(jsonResponse)
-        for country in jsonResponse['response']:
-            ic(country)
-            cur.execute('''INSERT OR IGNORE INTO countries
-                ( name ) VALUES ( ? )''',
-                ( country, ))
-            conn.commit()
 
+        #ic(jsonResponse['response'])
+
+        for i in jsonResponse['response']:
+            #ic(i)
+            country = i['country']
+            continent = i['continent']
+            population = i['population']
+
+            if population != None:
+                # fill database
+                conn = sqlite3.connect('cov19db.sqlite')
+                db = conn.cursor()
+                db.execute('''INSERT OR IGNORE INTO countries
+                    ( name, continent, population ) VALUES ( ?, ?, ? )''', 
+                    ( country, continent, population, ))
+                conn.commit() 
+    
     except HTTPError as http_err:
         print(f'HTTP error occurred: {http_err}')
     except Exception as err:
         print(f'Other error occurred: {err}')
 
-def statistics():
+def getStatistics(country):
     url = "https://covid-193.p.rapidapi.com/statistics"
 
     # optional country parameter
@@ -95,7 +110,7 @@ def statistics():
     except Exception as err:
         print(f'Other error occurred: {err}')
 
-def history(country):
+def getHistory(country):
     url = "https://covid-193.p.rapidapi.com/history"
 
     querystring = {"country": country}
@@ -112,8 +127,8 @@ def history(country):
     jsonResponse = response.json()
 
     # get country_id
-    cur.execute("""SELECT id FROM countries WHERE name == ?""", (country, ))
-    country_id = cur.fetchall()
+    db.execute("""SELECT id FROM countries WHERE name == ?""", (country, ))
+    country_id = db.fetchall()
     conn.commit()
     country_id = country_id[0][0]
 
@@ -145,7 +160,7 @@ def history(country):
                 recovered = item[i]['recovered']
                 ic(recovered)
 
-                cur.execute('''INSERT OR IGNORE INTO cases
+                db.execute('''INSERT OR IGNORE INTO cases
                 ( total, '1M_POP', daytime, country_id, new, active, critical, recovered ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ? )''',
                 ( total, POP_1M, daytime, country_id, new, active, critical, recovered, ))
                 conn.commit()
@@ -154,18 +169,30 @@ def history(country):
             elif i == 'deaths':
                 new = item[i]['new']
 
-                cur.execute('''INSERT OR IGNORE INTO deaths
+                db.execute('''INSERT OR IGNORE INTO deaths
                 ( total, '1M_POP', daytime, country_id, new ) VALUES ( ?, ?, ?, ?, ? )''',
                 ( total, POP_1M, daytime, country_id, new, ))
                 conn.commit()
 
             # fill tests db
             elif i == 'tests':
-                cur.execute('''INSERT OR IGNORE INTO tests
+                db.execute('''INSERT OR IGNORE INTO tests
                 ( total, '1M_POP', daytime, country_id ) VALUES ( ?, ?, ?, ? )''',
                 ( total, POP_1M, daytime, country_id, ))
                 conn.commit()
 
-# getCountries("Germany")
-# statistics("Germany")
-# history("Germany")
+def countriesDB():
+        # get SQLITE3 ready
+        conn = sqlite3.connect('cov19db.sqlite')
+        db = conn.cursor()
+        
+        # get current list of countries from db
+        db.execute('SELECT name FROM countries')
+        countries = db.fetchall()
+        conn.commit()
+        countries = list(itertools.chain(*countries))
+        return countries
+
+getCountries()
+# getStatistics("Germany")
+# getHistory("Germany")

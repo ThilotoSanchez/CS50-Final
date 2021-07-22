@@ -1,5 +1,21 @@
 {% extends "layout.html" %}
 
+{% block title %}
+    COVID Track
+{% endblock %}
+
 {% block main %}
-    Hello, world
+    <h2>Track Corona Data for your destinations</h2>
+
+    <form action="/" method="post">
+        <input autocomplete="off" autofocus class="form-control" name="countries" placeholder="Countries" type="text" required>
+        <button class="btn btn-primary" type="submit">Search</button>
+    </form>
+
+    <p>Data shown for {{ country }}.</p>
+    <p>Cases Total:</p>
+    <p>Tests Total:</p>
+    <p>Deaths Total:</p>
+    <p>Trend:</p>
+
 {% endblock %}
