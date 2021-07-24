@@ -23,7 +23,8 @@ def create_new_db():
         critical     INTEGER,
         recovered     INTEGER,
         '1M_POP'     TEXT,
-        daytime     DATE,
+        daytime     TEXT,
+        day     TEXT,
         UNIQUE(country_id, daytime)
     );
 
@@ -32,7 +33,8 @@ def create_new_db():
         country_id     INTEGER,
         total     INTEGER,
         '1M_POP'     TEXT,
-        daytime     DATE,
+        daytime     TEXT,
+        day     TEXT,
         UNIQUE(country_id, daytime)
     );
 
@@ -42,7 +44,8 @@ def create_new_db():
         total     INTEGER,
         new     TEXT,
         '1M_POP'     TEXT,
-        daytime     DATE,
+        daytime     TEXT,
+        day     TEXT,
         UNIQUE(country_id, daytime)
     );
 

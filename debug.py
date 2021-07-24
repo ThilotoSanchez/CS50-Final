@@ -6,11 +6,14 @@ from icecream import ic
 from requests.exceptions import HTTPError
 from flask import redirect, render_template, request, session
 from dotenv import load_dotenv
-from datetime import datetime
+from datetime import datetime, date
 from functools import wraps
+from urllib.request import urlopen
+import pytz
+import pandas as pd
+import itertools
 
-load_dotenv()
+from helpers import checkCountries
 
-
-
-statistics("Germany")
+COUNTRIES = checkCountries()
+ic(COUNTRIES)

@@ -11,7 +11,7 @@ from datetime import datetime, date
 import itertools
 import sqlite3
 
-from helpers import login_required, apology, getCountries, getStatistics, getHistory, countriesDB
+from helpers import login_required, apology, getCountries, getStatistics, getHistory, checkCountries, checkHistory, chartJS, todaysNrs
 
 # configure application
 app = Flask(__name__)
@@ -28,9 +28,7 @@ Session(app)
 if __name__ == '__main__':
     app.run(debug=True)
 
-today = date.today()
-today = today.strftime("%d/%m/%Y")
-ic(today)
+today = str(date.today())
 
 @app.route('/', methods=["GET", "POST"])
 @login_required
@@ -42,7 +40,7 @@ def index():
         # else: make API request to update db
 
         # load countries from db
-        COUNTRIES = countriesDB()
+        COUNTRIES = checkCountries()
 
         # check if user already has cookie
         if session.get('country'):
@@ -56,7 +54,7 @@ def index():
             location = json.load(response)
             COUNTRY = location['country']
             COUNTRY = pytz.country_names[COUNTRY]
-            ic(COUNTRY)
+            print("User didn't have country cookie. We set up:", COUNTRY)
 
             if COUNTRY not in COUNTRIES:
                 COUNTRY = "Switzerland"
@@ -65,12 +63,31 @@ def index():
             # set cookie in order to customize frontend
             session['country'] = COUNTRY
 
-        return render_template("index.html", country=COUNTRY, countries=COUNTRIES)
+        # check when data was last time updated
+        try:
+            last_updated = checkHistory(COUNTRY)
+            ic(last_updated)
+        except:
+            getHistory(COUNTRY)
+            last_updated = checkHistory(COUNTRY)
+
+        if last_updated != today:
+            getHistory(COUNTRY)
+        
+        # get todays numbers to display in frontend
+        # order: cases, deaths, tests
+        todays_numbers = todaysNrs(COUNTRY, today)
+
+        # create chart using chartJS
+        labels, values = chartJS(COUNTRY)
+
+        return render_template("index.html", country=COUNTRY, countries=COUNTRIES, labels=labels, values=values, todays_numbers=todays_numbers)
 
     # user coming via POST
     else:
+        
         # load countries from db
-        COUNTRIES = countriesDB()
+        COUNTRIES = checkCountries()
 
         COUNTRY = request.form.get("countries")
 

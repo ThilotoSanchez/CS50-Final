@@ -19,6 +19,8 @@
         <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx" crossorigin="anonymous"></script>
 
+        {% block header %}{% endblock %}
+
         <title>CS50: {% block title %}{% endblock %}</title>
 
     </head>
@@ -33,7 +35,7 @@
             <div class="collapse navbar-collapse" id="navbar">
                 {% if session.user_id %}
                     <ul class="navbar-nav mr-auto mt-2">
-                        <li class="nav-item"><a class="nav-link" href="/index">Home</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
                         <li class="nav-item"><a class="nav-link" href="/stats">Statistics</a></li>
                     </ul>
                     <ul class="navbar-nav ml-auto mt-2">
@@ -61,7 +63,7 @@
         </main>
 
         <footer class="small text-center text-muted">
-            Data provided for free by <a href="https://iextrading.com/developer">IEX</a>. View <a href="https://iextrading.com/api-exhibit-a/">IEX’s Terms of Use</a>.
+            COVID-19 data is coming from Google and major government sites. View <a href="https://rapidapi.com/api-sports/api/covid-193/details">COVID-19 API</a>.
         </footer>
 
     </body>
