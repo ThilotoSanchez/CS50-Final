@@ -3,6 +3,7 @@ quickstart.py
 credentials.json
 token.pickle
 token.json
+debug.py
 env
 __pycache__
 static/logo.png

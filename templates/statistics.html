@@ -5,7 +5,33 @@
 {% endblock %}
 
 {% block main %}
-    <table class="table">
+
+<h2>COVID-19 World Statistics</h2><br>
+
+<div style="overflow-x:auto;" class="mobileShow">
+    <table class="table" cellspacing="0" width="100%">
+        <thead>
+            <tr>
+                <th scope="col">Country</th>
+                <th scope="col">Active Cases</th>
+                <th scope="col">Deaths</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- TODO: Loop through the database entries to display them in this table -->
+                {% for stat in statistics %}
+                    <tr>
+                        <td>{{ stat[0] }}</td>
+                        <td>{{ stat[1] }}</td>
+                        <td>{{ stat[2] }}</td>
+                    </tr>
+                {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div style="overflow-x:auto;" class="mobileHide">
+    <table class="table" cellspacing="0" width="100%">
         <thead>
             <tr>
                 <th scope="col">Country</th>
@@ -17,7 +43,6 @@
         </thead>
         <tbody>
             <!-- TODO: Loop through the database entries to display them in this table -->
-            {% block body %}
                 {% for stat in statistics %}
                     <tr>
                         <td>{{ stat[0] }}</td>
@@ -27,7 +52,7 @@
                         <td>{{ stat[4] }}</td>
                     </tr>
                 {% endfor %}
-            {% endblock %}
         </tbody>
     </table>
+</div>
 {% endblock %}

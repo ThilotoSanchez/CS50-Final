@@ -76,13 +76,13 @@ def index():
         
         # get todays numbers to display in frontend
         # order: cases, deaths, tests
-        td_cases, td_deaths, td_tests = todaysNrs(COUNTRY, today)
+        todays_numbers = todaysNrs(COUNTRY, today)
 
         # create chart using chartJS
         labels, valuesCases, valuesDeaths = chartJS(COUNTRY)
 
         return render_template("index.html", country=COUNTRY, countries=COUNTRIES, labels=labels, 
-            valuesCases=valuesCases, valuesDeaths=valuesDeaths, td_cases=td_cases, td_deaths=td_deaths, td_tests=td_tests)
+            valuesCases=valuesCases, valuesDeaths=valuesDeaths, todays_numbers=todays_numbers)
 
     # user coming via POST
     else:
@@ -126,6 +126,28 @@ def statistics():
                 LIMIT 1""", (country,))
             country_specs = db.fetchone()
             conn.commit()
+
+            # format active cases, deaths and tests
+            try:
+                country_specs = list(country_specs)
+                country_specs[1] = f'{country_specs[1]:,}'
+            except:
+                pass
+
+            try:
+                country_specs = list(country_specs)
+                country_specs[2] = f'{country_specs[2]:,}'
+            except:
+                pass
+
+            try:
+                country_specs = list(country_specs)
+                country_specs[3] = f'{country_specs[3]:,}'
+            except:
+                pass
+
+            # try to format 
+
 
             # ic(country_specs)
             STATISTICS.append(country_specs)
@@ -255,3 +277,17 @@ def password_reset():
 
     else:
         return render_template("password_reset.html")
+
+@app.route("/legal-notice")
+def legalnotice():
+
+    if request.method == "GET":
+        pass
+    return render_template("imprint.html")
+
+@app.route("/data-privacy")
+def dataprivacy():
+
+    if request.method == "GET":
+        pass
+    return render_template("data-privacy.html")

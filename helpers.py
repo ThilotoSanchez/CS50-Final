@@ -390,7 +390,7 @@ def todaysNrs(country, today):
     db = conn.cursor()
     
     # get country_id
-    db.execute("""SELECT cases.total, deaths.total, tests.total 
+    db.execute("""SELECT cases.total, deaths.total, tests.total, cases.active, cases.critical, cases.recovered , countries.population, cases.new, cases.day
     FROM cases
     JOIN countries ON cases.country_id = countries.id
     JOIN deaths ON (cases.country_id = deaths.country_id AND cases.day = deaths.day)
@@ -400,11 +400,16 @@ def todaysNrs(country, today):
     todays_numbers = list(todays_numbers)
     conn.commit()
 
-    td_cases = f'{todays_numbers[0]:,}'
-    td_deaths = f'{todays_numbers[1]:,}'
-    td_tests = f'{todays_numbers[2]:,}'
+    for i in range(0, 7):
+        try:
+            todays_numbers[i] = f'{todays_numbers[i]:,}'
+        except:
+            continue
 
-    return td_cases, td_deaths, td_tests
+    # ic(type(todays_numbers))
+    # ic(todays_numbers)
+
+    return todays_numbers
 
 # getCountries()
 # getStatistics("Germany")
@@ -412,3 +417,4 @@ def todaysNrs(country, today):
 # checkHistory("Germany")
 # chartJS("Germany")
 # checkCountries()
+# todaysNrs("Germany", "2021-07-24")

@@ -35,9 +35,17 @@ for country in COUNTRIES:
         ORDER BY cases.day DESC
         LIMIT 1""", (country,))
     country_specs = db.fetchone()
+    
+    try:
+        country_specs = list(country_specs)
+    except:
+        pass
+    
     conn.commit()
+
+    ic(country_specs)
 
     # ic(country_specs)
     current_stats.append(country_specs)
 
-ic(current_stats[0][0])
+ic(current_stats)
