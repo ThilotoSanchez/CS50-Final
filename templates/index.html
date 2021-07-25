@@ -26,9 +26,9 @@
     <p>Data shown for {{ country }}.</p>
 
     <!-- Show country specific stats -->
-    <p>Cases Total: {{ todays_numbers[0] }}</p>
-    <p>Tests Total: {{ todays_numbers[2] }}</p>
-    <p>Deaths Total: {{ todays_numbers[1] }}</p>
+    <p>Cases Total: <b>{{ td_cases }}</b></p>
+    <p>Tests Total: <b>{{ td_tests }}</b></p>
+    <p>Deaths Total: <b>{{ td_deaths }}</b></p>
     <p>Trend:</p>
 
     <!-- show diagram using Chart.JS -->
@@ -41,24 +41,45 @@
                 labels: {{ labels | safe }},
                 datasets: [
                     {
-                        labels: "Data points",
-                        data: {{ values | safe }},
+                        label: "Cases",
+                        data: {{ valuesCases | safe }},
                         fill: false,
-                        borderColor: "rgb(75, 192, 192)",
-                        lineTension: 0.1
+                        borderColor: "#457b9d",
+                        lineTension: 0.1,
+                        yAxisID: 'y',
+                    },
+                    {
+                        label: "Deaths",
+                        data: {{ valuesDeaths | safe }},
+                        fill: false,
+                        borderColor: "#e63946",
+                        lineTension: 0.1,
+                        yAxisID: 'y1',
                     }
                 ]
             },
             options: {
-                responsive: false,
+                responsive: true,
                 scales: {
-                    x: [{
+                    x: {
                         ticks: {
                             autoSkip: true,
                             maxTicksLimit: 10
                         }
-                    }],
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: {
+                            display: true,
+                            text: "# of deaths"
+                        },
+                    },
                     y: {
+                        type: 'linear',
+                        display: true,
+                        positon: 'left',
                         title: {
                             display: true,
                             text: "# of cases"
@@ -68,10 +89,11 @@
                 plugins: {
                     title: {
                         display: true,
-                        text: 'COV-19 Cases in {{ country }}'
+                        text: 'COVID-19 statistics for {{ country }}'
                     },
                     legend: {
-                        display: false
+                        display: true,
+                        position: 'bottom'
                     }
                 }
             }

@@ -96,6 +96,20 @@ def getCountries():
 def getStatistics(country):
     """ Calls the COVID-19 statistics API. It delivers todays stats for a specific country """
     
+    countries = checkCountries()
+    if country not in countries:
+        return 404
+
+    # get SQLITE3 ready
+    conn = sqlite3.connect('cov19db.sqlite')
+    db = conn.cursor()
+
+    # get country_id
+    db.execute("""SELECT id FROM countries WHERE name == ?""", (country, ))
+    country_id = db.fetchall()
+    conn.commit()
+    country_id = country_id[0][0]
+
     url = "https://covid-193.p.rapidapi.com/statistics"
 
     # optional country parameter
@@ -109,12 +123,29 @@ def getStatistics(country):
     try:
         response = requests.request("GET", url, headers=headers, params=querystring)
 
-        print(response.text)
+        # use builtin JSON decoder
+        jsonResponse = response.json()
+
+        for item in jsonResponse['response']:
+            active_cases = item['cases']['active']
+            deaths = item['deaths']['total']
+            tests = item['tests']['total']
+            updated = item['day']
     
     except HTTPError as http_err:
         print(f'HTTP error occurred: {http_err}')
     except Exception as err:
         print(f'Other error occurred: {err}')
+
+    # get SQLITE3 ready
+    conn = sqlite3.connect('cov19db.sqlite')
+    db = conn.cursor()
+
+    # update db
+    db.execute('''INSERT OR IGNORE INTO overview
+        ( country_id, new, active, critical, recovered, day ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ? )''',
+        ( total, POP_1M, daytime, country_id, new, active, critical, recovered, day, ))
+    conn.commit()
 
 def getHistory(country):
     
@@ -150,126 +181,131 @@ def getHistory(country):
             
     # iterate through JSON from API
     for item in jsonResponse['response']:
+        # ic(item)
 
-        # select data for all three cases
-        for i in lists:
-            total = item[i]['total']
-            POP_1M = item[i]['1M_pop']
+        try:
+            # select data for all three cases
+            for i in lists:
+                total = item[i]['total']
+                POP_1M = item[i]['1M_pop']
 
-            day = item['day']
+                day = item['day']
 
-            # transform day and time into datetime
-            time_str = item['time']
-            daytime = time_str.split('T')[1].split('+')[0]
+                # transform day and time into datetime
+                time_str = item['time']
+                daytime = time_str.split('T')[1].split('+')[0]
 
-            # get list specific fields
-            # fill cases db
-            if i == 'cases':
-                
-                new = item[i]['new']
-                active = item[i]['active']
-                critical = item[i]['critical']
-                recovered = item[i]['recovered']
-
-                # check if date exists in database
-                db.execute('''SELECT day, daytime FROM cases WHERE day = ? AND country_id = ?''', (day, country_id, ) )
-                date = db.fetchall()
-                conn.commit()
-
-                # if day already exists but time is greater: replace row
-                if len(date) > 0:
+                # get list specific fields
+                # fill cases db
+                if i == 'cases':
                     
-                    tempDay = date[0][0]
-                    tempDaytime = date[0][1]
+                    new = item[i]['new']
+                    active = item[i]['active']
+                    critical = item[i]['critical']
+                    recovered = item[i]['recovered']
 
-                    # update data if timestamp is greater
-                    if day == tempDay and daytime > tempDaytime:
-                        db.execute('''UPDATE cases SET 
-                            total = ?,
-                            '1M_POP' = ?,
-                            daytime = ?,
-                            new = ?,
-                            active = ?,
-                            critical = ?,
-                            recovered = ?,
-                            day = ?, 
-                            WHERE country_id = ?''', 
-                            ( total, POP_1M, daytime, new, active, critical, recovered, day, country_id, ))
-                        conn.commit()
-
-                # data for day doesn't exist, create it
-                else:
-                    db.execute('''INSERT OR IGNORE INTO cases
-                        ( total, '1M_POP', daytime, country_id, new, active, critical, recovered, day ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ? )''',
-                        ( total, POP_1M, daytime, country_id, new, active, critical, recovered, day, ))
+                    # check if date exists in database
+                    db.execute('''SELECT day, daytime FROM cases WHERE day = ? AND country_id = ?''', (day, country_id, ) )
+                    date = db.fetchall()
                     conn.commit()
 
-            # fill deaths db
-            elif i == 'deaths':
-                new = item[i]['new']
+                    # if day already exists but time is greater: replace row
+                    if len(date) > 0:
+                        
+                        tempDay = date[0][0]
+                        tempDaytime = date[0][1]
 
-                # check if date exists in database
-                db.execute('''SELECT day, daytime FROM deaths WHERE day = ? AND country_id = ?''', (day, country_id, ) )
-                date = db.fetchall()
-                conn.commit()
+                        # update data if timestamp is greater
+                        if day == tempDay and daytime > tempDaytime:
+                            db.execute('''UPDATE cases SET 
+                                total = ?,
+                                '1M_POP' = ?,
+                                daytime = ?,
+                                new = ?,
+                                active = ?,
+                                critical = ?,
+                                recovered = ?,
+                                day = ?, 
+                                WHERE country_id = ?''', 
+                                ( total, POP_1M, daytime, new, active, critical, recovered, day, country_id, ))
+                            conn.commit()
 
-                
-                # if day already exists but time is greater: replace row
-                if len(date) > 0:
-                    
-                    tempDay = date[0][0]
-                    tempDaytime = date[0][1]
-
-                    # update data if timestamp is greater
-                    if day == tempDay and daytime > tempDaytime:
-                        db.execute('''UPDATE deaths SET 
-                            total = ?,
-                            '1M_POP' = ?,
-                            daytime = ?,
-                            new = ?,
-                            day = ?, 
-                            WHERE country_id = ?''',
-                            ( total, POP_1M, daytime, new, day, country_id, ))
+                    # data for day doesn't exist, create it
+                    else:
+                        db.execute('''INSERT OR IGNORE INTO cases
+                            ( total, '1M_POP', daytime, country_id, new, active, critical, recovered, day ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ? )''',
+                            ( total, POP_1M, daytime, country_id, new, active, critical, recovered, day, ))
                         conn.commit()
 
-                # data for day doesn't exist, create it
-                else:
-                    db.execute('''INSERT OR IGNORE INTO deaths
-                        ( total, '1M_POP', daytime, country_id, new, day ) VALUES ( ?, ?, ?, ?, ?, ? )''',
-                        ( total, POP_1M, daytime, country_id, new, day, ))
+                # fill deaths db
+                elif i == 'deaths':
+                    new = item[i]['new']
+
+                    # check if date exists in database
+                    db.execute('''SELECT day, daytime FROM deaths WHERE day = ? AND country_id = ?''', (day, country_id, ) )
+                    date = db.fetchall()
                     conn.commit()
 
-            # fill tests db
-            elif i == 'tests':
-
-                # check if date exists in database
-                db.execute('''SELECT day, daytime FROM tests WHERE day = ? AND country_id = ?''', (day, country_id, ) )
-                date = db.fetchall()
-                conn.commit()
-
-                # if day already exists but time is greater: replace row
-                if len(date) > 0:
                     
-                    tempDay = date[0][0]
-                    tempDaytime = date[0][1]
+                    # if day already exists but time is greater: replace row
+                    if len(date) > 0:
+                        
+                        tempDay = date[0][0]
+                        tempDaytime = date[0][1]
 
-                    # update data if timestamp is greater
-                    if day == tempDay and daytime > tempDaytime:
-                        db.execute('''UPDATE tests SET 
-                            total = ?,
-                            '1M_POP' = ?,
-                            daytime = ?,
-                            day = ?, 
-                            WHERE country_id = ?''',
-                            ( total, POP_1M, daytime, day, country_id, ))
+                        # update data if timestamp is greater
+                        if day == tempDay and daytime > tempDaytime:
+                            db.execute('''UPDATE deaths SET 
+                                total = ?,
+                                '1M_POP' = ?,
+                                daytime = ?,
+                                new = ?,
+                                day = ?, 
+                                WHERE country_id = ?''',
+                                ( total, POP_1M, daytime, new, day, country_id, ))
+                            conn.commit()
+
+                    # data for day doesn't exist, create it
+                    else:
+                        db.execute('''INSERT OR IGNORE INTO deaths
+                            ( total, '1M_POP', daytime, country_id, new, day ) VALUES ( ?, ?, ?, ?, ?, ? )''',
+                            ( total, POP_1M, daytime, country_id, new, day, ))
                         conn.commit()
 
-                # data for day doesn't exist, create it
-                else:
-                    db.execute('''INSERT OR IGNORE INTO tests
-                        ( total, '1M_POP', daytime, country_id, day ) VALUES ( ?, ?, ?, ?, ? )''',
-                        ( total, POP_1M, daytime, country_id, day, ))
+                # fill tests db
+                elif i == 'tests':
+
+                    # check if date exists in database
+                    db.execute('''SELECT day, daytime FROM tests WHERE day = ? AND country_id = ?''', (day, country_id, ) )
+                    date = db.fetchall()
                     conn.commit()
+
+                    # if day already exists but time is greater: replace row
+                    if len(date) > 0:
+                        
+                        tempDay = date[0][0]
+                        tempDaytime = date[0][1]
+
+                        # update data if timestamp is greater
+                        if day == tempDay and daytime > tempDaytime:
+                            db.execute('''UPDATE tests SET 
+                                total = ?,
+                                '1M_POP' = ?,
+                                daytime = ?,
+                                day = ?, 
+                                WHERE country_id = ?''',
+                                ( total, POP_1M, daytime, day, country_id, ))
+                            conn.commit()
+
+                    # data for day doesn't exist, create it
+                    else:
+                        db.execute('''INSERT OR IGNORE INTO tests
+                            ( total, '1M_POP', daytime, country_id, day ) VALUES ( ?, ?, ?, ?, ? )''',
+                            ( total, POP_1M, daytime, country_id, day, ))
+                        conn.commit()
+
+        except:
+            continue
 
 def checkCountries():
         # get SQLITE3 ready
@@ -281,6 +317,8 @@ def checkCountries():
         countries = db.fetchall()
         conn.commit()
         countries = list(itertools.chain(*countries))
+        
+        # ic(countries)
         return countries
 
 def checkHistory(country):
@@ -313,12 +351,13 @@ def chartJS(COUNTRY):
     # get data from SQLITE3 db
     conn = sqlite3.connect('cov19db.sqlite')
     db = conn.cursor()
-    db.execute("""SELECT cases.day AS Time, cases.total AS Total
+    db.execute("""SELECT cases.day AS Time, cases.total AS Cases, deaths.total AS Deaths
         FROM cases
         JOIN countries ON cases.country_id = countries.id
+        JOIN deaths ON (cases.country_id = deaths.country_id AND cases.day = deaths.day)
         WHERE countries.name == ?
         ORDER BY Time DESC
-        LIMIT 365""", (COUNTRY, ))
+        LIMIT 600""", (COUNTRY, ))
 
     data = db.fetchall()
     conn.commit()
@@ -329,12 +368,19 @@ def chartJS(COUNTRY):
         labels.append(data[i][0])
     labels.reverse()
     
-    values = list()
+    # get cases values
+    valuesCases = list()
     for i in range(0, len(data), 29):
-        values.append(data[i][1])
-    values.reverse()
+        valuesCases.append(data[i][1])
+    valuesCases.reverse()
 
-    return labels, values
+    # get deaths values
+    valuesDeaths = list()
+    for i in range(0, len(data), 29):
+        valuesDeaths.append(data[i][2])
+    valuesDeaths.reverse()
+
+    return labels, valuesCases, valuesDeaths
 
 def todaysNrs(country, today):
     ''' Get todays numbers out of the database '''
@@ -354,11 +400,15 @@ def todaysNrs(country, today):
     todays_numbers = list(todays_numbers)
     conn.commit()
 
-    return todays_numbers
+    td_cases = f'{todays_numbers[0]:,}'
+    td_deaths = f'{todays_numbers[1]:,}'
+    td_tests = f'{todays_numbers[2]:,}'
 
+    return td_cases, td_deaths, td_tests
 
 # getCountries()
 # getStatistics("Germany")
 # getHistory("USA")
 # checkHistory("Germany")
 # chartJS("Germany")
+# checkCountries()

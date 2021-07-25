@@ -76,12 +76,13 @@ def index():
         
         # get todays numbers to display in frontend
         # order: cases, deaths, tests
-        todays_numbers = todaysNrs(COUNTRY, today)
+        td_cases, td_deaths, td_tests = todaysNrs(COUNTRY, today)
 
         # create chart using chartJS
-        labels, values = chartJS(COUNTRY)
+        labels, valuesCases, valuesDeaths = chartJS(COUNTRY)
 
-        return render_template("index.html", country=COUNTRY, countries=COUNTRIES, labels=labels, values=values, todays_numbers=todays_numbers)
+        return render_template("index.html", country=COUNTRY, countries=COUNTRIES, labels=labels, 
+            valuesCases=valuesCases, valuesDeaths=valuesDeaths, td_cases=td_cases, td_deaths=td_deaths, td_tests=td_tests)
 
     # user coming via POST
     else:
@@ -98,6 +99,38 @@ def index():
 
         # Redirect user to home page
         return redirect("/")
+
+@app.route("/statistics")
+def statistics():
+
+    if request.method == "GET":
+
+        # get SQLITE3 ready
+        conn = sqlite3.connect('cov19db.sqlite')
+        db = conn.cursor()
+        
+        COUNTRIES = checkCountries()
+
+        STATISTICS = list()
+
+        for country in COUNTRIES:
+
+            # query database to show data for all countries
+            db.execute("""SELECT countries.name, cases.active, deaths.total, tests.total, cases.day
+                FROM cases
+                JOIN countries ON cases.country_id = countries.id
+                JOIN deaths ON (cases.country_id = deaths.country_id AND cases.day = deaths.day)
+                JOIN tests ON (cases.country_id = tests.country_id AND cases.day = tests.day)
+                WHERE countries.name = ?
+                ORDER BY cases.day DESC
+                LIMIT 1""", (country,))
+            country_specs = db.fetchone()
+            conn.commit()
+
+            # ic(country_specs)
+            STATISTICS.append(country_specs)
+
+        return render_template("statistics.html", statistics=STATISTICS)
 
 @app.route("/register", methods=["GET", "POST"])
 def register():

@@ -49,6 +49,16 @@ def create_new_db():
         UNIQUE(country_id, daytime)
     );
 
+    CREATE TABLE IF NOT EXISTS overview (
+        id     INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        country_id     INTEGER,
+        active_cases     INTEGER,
+        deaths     INTEGER,
+        tests     INTEGER,
+        updated     TEXT,
+        UNIQUE(country_id, updated)
+    )
+
     CREATE TABLE IF NOT EXISTS user (
         id     INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
         username     TEXT UNIQUE,
