@@ -1,21 +1,141 @@
 {% extends "layout.html" %}
 
+{% block header %}
+    <!-- Use Chart.JS for Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
 {% block title %}
     COVID Track
 {% endblock %}
 
 {% block main %}
-    <h2>Track Corona Data for your destinations</h2>
+    <h2>Track Corona Data for your destinations</h2><br>
 
-    <form action="/" method="post">
-        <input autocomplete="off" autofocus class="form-control" name="countries" placeholder="Countries" type="text" required>
-        <button class="btn btn-primary" type="submit">Search</button>
-    </form>
+    <div>
+        <form action="/" method="post">
+            <!-- <input autocomplete="off" autofocus class="form-control" name="countries" placeholder="Countries" type="text" required> -->
+            <select name="countries">
+                <option disabled selected value="">Country</option>
+                {% for c in countries %}
+                    <option value="{{ c }}">{{ c }}</option>"
+                {% endfor %}
+            </select>
+            <button class="btn btn-primary" type="submit">Search</button>
+        </form>
+    </div>
 
-    <p>Data shown for {{ country }}.</p>
-    <p>Cases Total:</p>
-    <p>Tests Total:</p>
-    <p>Deaths Total:</p>
-    <p>Trend:</p>
+    <div>
+        <div>
+            <br><h2>{{ country }}</h2>
+            Population: {{ todays_numbers[6] }}<br>
+            Updated: {{ todays_numbers[8] }}
+        </div>
+
+        <!-- Show country specific stats -->
+        <p><h4>Cases</h4></p>
+        <p>Total: <b>{{ todays_numbers[0] }}</b></p>
+        <div class=container-xl>
+            <div class="cases">
+                <div class="newCases column">
+                    <b>New:</b><br>
+                    {{ todays_numbers[7] }}
+                </div>
+                <div class="activeCases column">
+                    <b>Active:</b><br>
+                    {{ todays_numbers[3] }}
+                </div>
+                <div class="criticalCases column">
+                    <b>Critical:</b><br>
+                    {{ todays_numbers[4] }}
+                </div>
+                <div class="recoveredCases column">
+                    <b>Recovered:</b><br>
+                    {{ todays_numbers[5] }}
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <h4>Tests</h4>
+            Total: <b>{{ todays_numbers[2] }}</b>
+        </div>
+
+        <div>
+            <h4>Deaths</h4>
+            Total: <b>{{ todays_numbers[1] }}</b>
+            <br>
+        </div>
+    </div>
+
+    <!-- show diagram using Chart.JS -->
+    <canvas id="lineChart" width="900" height="400"></canvas>
+    <script>
+        var ctx = document.getElementById("lineChart").getContext("2d");
+        var lineChart = new Chart(ctx, {
+            type: "line",
+            data: {
+                labels: {{ labels | safe }},
+                datasets: [
+                    {
+                        label: "Cases",
+                        data: {{ valuesCases | safe }},
+                        fill: false,
+                        borderColor: "#457b9d",
+                        lineTension: 0.1,
+                        yAxisID: 'y',
+                    },
+                    {
+                        label: "Deaths",
+                        data: {{ valuesDeaths | safe }},
+                        fill: false,
+                        borderColor: "#e63946",
+                        lineTension: 0.1,
+                        yAxisID: 'y1',
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        ticks: {
+                            autoSkip: true,
+                            maxTicksLimit: 10
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: {
+                            display: true,
+                            text: "# of deaths"
+                        },
+                    },
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        positon: 'left',
+                        title: {
+                            display: true,
+                            text: "# of cases"
+                        }
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        position: 'bottom',
+                        text: 'COVID-19 statistics for {{ country }}'
+                    },
+                    legend: {
+                        display: true,
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    </script>
 
 {% endblock %}
