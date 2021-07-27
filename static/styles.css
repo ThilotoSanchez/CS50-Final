@@ -22,6 +22,11 @@ main img
     max-width: 100%;
 }
 
+/* Modify the backgorund color */
+.navbar-custom {
+    background-color: #FFFFFF;
+}
+
 div {
     margin-bottom: 15px;
 }
@@ -35,8 +40,30 @@ div {
 .cases {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 30px;
     flex-direction: column;
+}
+
+.mobileShow {
+    display: none;
+}
+
+/* Smartphone Portrait and Landscape */
+@media only screen
+  and (min-device-width : 320px)
+  and (max-device-width : 480px){ 
+    .mobileShow {display: inline;}
+}
+
+.mobileHide { 
+    display: inline;
+}
+
+/* Smartphone Portrait and Landscape */
+@media only screen
+and (min-device-width : 320px)
+and (max-device-width : 480px){
+.mobileHide { display: none;}
 }
 
 /* Large devices (desktops, 992px and up)*/
