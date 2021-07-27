@@ -162,7 +162,7 @@ def getHistory(country):
         'x-rapidapi-host': os.getenv('x-rapidapi-host')
         }
     response = requests.request("GET", url, headers=headers, params=querystring)
-    response.raise_for_status()
+    # response.raise_for_status()
 
     # use builtin JSON decoder
     jsonResponse = response.json()
