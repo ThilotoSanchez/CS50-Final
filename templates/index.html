@@ -10,12 +10,15 @@
 {% endblock %}
 
 {% block main %}
-    <h2>Track Corona Data for your destinations</h2><br>
+    <h2>Todays COVID-19 Data</h2>
+    <p>Search for your travel destination to see all COVID data for today. <br>
+        Big THANK YOU to all people in healthcare to keep us safe and fight the pandemic.</p>
+    <br>
 
     <div>
         <form action="/" method="post">
             <!-- <input autocomplete="off" autofocus class="form-control" name="countries" placeholder="Countries" type="text" required> -->
-            <select name="countries">
+            <select name="countries" id="countries">
                 <option disabled selected value="">Country</option>
                 {% for c in countries %}
                     <option value="{{ c }}">{{ c }}</option>"
@@ -38,20 +41,20 @@
         <div class=container-xl>
             <div class="cases">
                 <div class="newCases column">
-                    <b>New:</b><br>
-                    {{ todays_numbers[7] }}
+                    New:<br>
+                    <b>{{ todays_numbers[7] }}</b>
                 </div>
                 <div class="activeCases column">
-                    <b>Active:</b><br>
-                    {{ todays_numbers[3] }}
+                    Active:</b><br>
+                    <b>{{ todays_numbers[3] }}</b>
                 </div>
                 <div class="criticalCases column">
-                    <b>Critical:</b><br>
-                    {{ todays_numbers[4] }}
+                    Critical:<br>
+                    <b>{{ todays_numbers[4] }}</b>
                 </div>
                 <div class="recoveredCases column">
-                    <b>Recovered:</b><br>
-                    {{ todays_numbers[5] }}
+                    Recovered:<br>
+                    <b>{{ todays_numbers[5] }}</b>
                 </div>
             </div>
         </div>
@@ -69,73 +72,185 @@
     </div>
 
     <!-- show diagram using Chart.JS -->
-    <canvas id="lineChart" width="900" height="400"></canvas>
-    <script>
-        var ctx = document.getElementById("lineChart").getContext("2d");
-        var lineChart = new Chart(ctx, {
-            type: "line",
-            data: {
-                labels: {{ labels | safe }},
-                datasets: [
-                    {
-                        label: "Cases",
-                        data: {{ valuesCases | safe }},
-                        fill: false,
-                        borderColor: "#457b9d",
-                        lineTension: 0.1,
-                        yAxisID: 'y',
-                    },
-                    {
-                        label: "Deaths",
-                        data: {{ valuesDeaths | safe }},
-                        fill: false,
-                        borderColor: "#e63946",
-                        lineTension: 0.1,
-                        yAxisID: 'y1',
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    x: {
-                        ticks: {
-                            autoSkip: true,
-                            maxTicksLimit: 10
-                        }
-                    },
-                    y1: {
-                        type: 'linear',
-                        display: true,
-                        position: 'right',
-                        title: {
-                            display: true,
-                            text: "# of deaths"
+    <div class="table-responsive mobileHide">
+        <canvas id="dACD" class="table" style="width:900px; height:400px"></canvas>
+        <script>
+            var ctx = document.getElementById("dACD").getContext("2d");
+            var lineChart = new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels: {{ labels | safe }},
+                    datasets: [
+                        {
+                            label: "Cases",
+                            data: {{ valuesCases | safe }},
+                            fill: false,
+                            borderColor: "#457b9d",
+                            lineTension: 0.1,
+                            yAxisID: 'y',
                         },
+                        {
+                            label: "Deaths",
+                            data: {{ valuesDeaths | safe }},
+                            fill: false,
+                            borderColor: "#e63946",
+                            lineTension: 0.1,
+                            yAxisID: 'y1',
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            ticks: {
+                                autoSkip: true,
+                                maxTicksLimit: 10
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: "# of deaths"
+                            },
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            positon: 'left',
+                            title: {
+                                display: true,
+                                text: "# of cases"
+                            }
+                        }
                     },
-                    y: {
-                        type: 'linear',
-                        display: true,
-                        positon: 'left',
+                    plugins: {
                         title: {
                             display: true,
-                            text: "# of cases"
+                            position: 'bottom',
+                            text: 'COVID-19 statistics for {{ country }}'
+                        },
+                        legend: {
+                            display: true,
+                            position: 'bottom'
                         }
-                    }
-                },
-                plugins: {
-                    title: {
-                        display: true,
-                        position: 'bottom',
-                        text: 'COVID-19 statistics for {{ country }}'
-                    },
-                    legend: {
-                        display: true,
-                        position: 'bottom'
                     }
                 }
-            }
-        });
-    </script>
+            });
+        </script>
+    </div>
 
+    <div class="table-responsive mobileShow">
+        <canvas id="mAC" class="table" style="height:250px"></canvas>
+        <script>
+            var ctx = document.getElementById("mAC").getContext("2d");
+            var lineChart = new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels: {{ labels | safe }},
+                    datasets: [
+                        {
+                            label: "Cases",
+                            data: {{ valuesCases | safe }},
+                            fill: false,
+                            borderColor: "#457b9d",
+                            lineTension: 0.1,
+                            yAxisID: 'y',
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            ticks: {
+                                autoSkip: true,
+                                maxTicksLimit: 5
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            positon: 'left',
+                            title: {
+                                display: false,
+                                text: "# of cases"
+                            }
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            position: 'top',
+                            text: '# active cases for {{ country }}'
+                        },
+                        legend: {
+                            display: false,
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        </script>
+    </div>
+
+    <div class="table-responsive mobileShow">
+        <canvas id="mD" class="table" style="height:250px"></canvas>
+        <script>
+            var ctx = document.getElementById("mD").getContext("2d");
+            var lineChart = new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels: {{ labels | safe }},
+                    datasets: [
+                        {
+                            label: "Deaths",
+                            data: {{ valuesDeaths | safe }},
+                            fill: false,
+                            borderColor: "#e63946",
+                            lineTension: 0.1,
+                            yAxisID: 'y',
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            ticks: {
+                                autoSkip: true,
+                                maxTicksLimit: 5
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: false,
+                                text: "# of deaths"
+                            },
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            position: 'top',
+                            text: '# of deaths for {{ country }}'
+                        },
+                        legend: {
+                            display: false,
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        </script>
+    </div>
 {% endblock %}
