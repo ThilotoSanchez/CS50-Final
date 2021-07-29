@@ -2,9 +2,11 @@
 
 This CS50 2021 Final Project is dedicated to all people worldwide, working in healthcare and fighting the COVID-19 pandemic.
 
-Our goal with the COVID Track webiste is to help people thinking about travelling, to get all important COVID-19 information about active, recovered & critical cases as well as numbers of deaths per country in one source. It should also spread hope about how many recovered and how we get back to the new normal.
+My goal with the COVID Track webiste is to help people thinking about travelling, to get all important COVID-19 information about active, recovered & critical cases as well as numbers of deaths per country in one source. It should also spread hope about how many recovered and how we get back to the new normal.
 
 The website is for educational purposes only. Thanks for API-sports for offering the COVID-19 API for free.
+
+Please note: Currently it's working locally but not in Heroku. This will be fixed within the next steps.
 
 ## Website structure
 We build the site based on the Model-View-Controller (MVC) framework.
