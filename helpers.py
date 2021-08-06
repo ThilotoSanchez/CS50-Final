@@ -60,8 +60,8 @@ def getCountries():
     # querystring = {"country": country}
 
     headers = {
-        'x-rapidapi-key': os.environ.get['x-rapidapi-key'],
-        'x-rapidapi-host': os.environ.get['x-rapidapi-host']
+        'x-rapidapi-key': os.environ.get('x-rapidapi-key'),
+        'x-rapidapi-host': os.environ.get('x-rapidapi-host')
         }
 
     try:
@@ -117,8 +117,8 @@ def getStatistics(country):
     querystring = {"country": country}
 
     headers = {
-        'x-rapidapi-key': os.environ.get['x-rapidapi-key'],
-        'x-rapidapi-host': os.environ.get['x-rapidapi-host']
+        'x-rapidapi-key': os.environ.get('x-rapidapi-key'),
+        'x-rapidapi-host': os.environ.get('x-rapidapi-host')
         }
 
     try:
@@ -157,8 +157,8 @@ def getHistory(country):
     querystring = {"country": country}
     
     headers = {
-        'x-rapidapi-key': os.environ.get['x-rapidapi-key'],
-        'x-rapidapi-host': os.environ.get['x-rapidapi-host']
+        'x-rapidapi-key': os.environ.get('x-rapidapi-key'),
+        'x-rapidapi-host': os.environ.get('x-rapidapi-host')
         }
 
     response = requests.request("GET", url, headers=headers, params=querystring)
