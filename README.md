@@ -6,7 +6,7 @@ My goal with the COVID Track webiste is to help people thinking about travelling
 
 The website is for educational purposes only. Thanks for API-sports for offering the COVID-19 API for free.
 
-Please note: Currently it's working locally but not in Heroku. This will be fixed within the next steps.
+https://fierce-cove-71303.herokuapp.com/
 
 ## Website structure
 We build the site based on the Model-View-Controller (MVC) framework.
