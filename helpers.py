@@ -93,7 +93,6 @@ def getCountries():
     except Exception as err:
         print(f'Other error occurred: {err}')
 
-
 def getStatistics(country):
     """ Calls the COVID-19 statistics API. It delivers todays stats for a specific country """
     
@@ -102,10 +101,10 @@ def getStatistics(country):
         return 404
 
     # get SQLITE3 ready
+    # get country_id
     conn = sqlite3.connect('cov19db.sqlite')
     db = conn.cursor()
-
-    # get country_id
+    
     db.execute("""SELECT id FROM countries WHERE name == ?""", (country, ))
     country_id = db.fetchall()
     conn.commit()
@@ -128,11 +127,23 @@ def getStatistics(country):
         jsonResponse = response.json()
 
         for item in jsonResponse['response']:
-            active_cases = item['cases']['active']
-            deaths = item['deaths']['total']
-            tests = item['tests']['total']
+            cases_active = item['cases']['active']
+            cases_total = item['cases']['total']
+            cases_critical = item['cases']['critical']
+            cases_1mpop = item['cases']['1M_pop']
+            cases_recovered = item['cases']['recovered']
+            cases_new = item['cases']['new']
+            deaths_total = item['deaths']['total']
+            deaths_new = item['deaths']['total']
+            deaths_1mpop = item['deaths']['1M_pop']
+            tests_total = item['tests']['total']
+            tests_1mpop = item['tests']['1M_pop']
             updated = item['day']
-    
+
+            # transform day and time into datetime
+            time_str = item['time']
+            daytime = time_str.split('T')[1].split('+')[0]
+            
     except HTTPError as http_err:
         print(f'HTTP error occurred: {http_err}')
     except Exception as err:
@@ -142,8 +153,23 @@ def getStatistics(country):
     conn = sqlite3.connect('cov19db.sqlite')
     db = conn.cursor()
 
-    # TODO: update db
+    # update cases db
+    db.execute('''INSERT OR IGNORE INTO cases
+        ( country_id, total, new, active, critical, recovered, '1M_POP', daytime, day ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ? )''',
+        ( country_id, cases_total, cases_new, cases_active, cases_critical, cases_recovered, cases_1mpop, daytime, updated, ))
+    conn.commit()
 
+    # update deaths db
+    db.execute('''INSERT OR IGNORE INTO deaths
+        ( country_id, total, new, '1M_POP', daytime, day ) VALUES ( ?, ?, ?, ?, ?, ? )''',
+        ( country_id, deaths_total, deaths_new, deaths_1mpop, daytime, updated, ))
+    conn.commit()
+
+    # update tests db
+    db.execute('''INSERT OR IGNORE INTO tests
+        ( country_id, total, '1M_POP', daytime, day ) VALUES ( ?, ?, ?, ?, ? )''',
+        ( country_id, tests_total, tests_1mpop, daytime, updated, ))
+    conn.commit()
 
 def getHistory(country):
     
@@ -308,18 +334,18 @@ def getHistory(country):
             continue
 
 def checkCountries():
-        # get SQLITE3 ready
-        conn = sqlite3.connect('cov19db.sqlite')
-        db = conn.cursor()
-        
-        # get current list of countries from db
-        db.execute('SELECT name FROM countries')
-        countries = db.fetchall()
-        conn.commit()
-        countries = list(itertools.chain(*countries))
-        
-        # ic(countries)
-        return countries
+    # get SQLITE3 ready
+    conn = sqlite3.connect('cov19db.sqlite')
+    db = conn.cursor()
+    
+    # get current list of countries from db
+    db.execute('SELECT name FROM countries')
+    countries = db.fetchall()
+    conn.commit()
+    countries = list(itertools.chain(*countries))
+    
+    # ic(countries)
+    return countries
 
 def checkHistory(country):
     ''' Checks database to see when the data was updated for the last time '''
@@ -382,8 +408,11 @@ def chartJS(COUNTRY):
 
     return labels, valuesCases, valuesDeaths
 
-def todaysNrs(country, today):
+def todaysNrs(country, today, last_updated):
     ''' Get todays numbers out of the database '''
+
+    if last_updated != today:
+        getStatistics(country)
 
     # get SQLITE3 ready
     conn = sqlite3.connect('cov19db.sqlite')
@@ -412,7 +441,7 @@ def todaysNrs(country, today):
     return todays_numbers
 
 # getCountries()
-# getStatistics("Germany")
+getStatistics("Switzerland")
 # getHistory("USA")
 # checkHistory("Germany")
 # chartJS("Germany")
