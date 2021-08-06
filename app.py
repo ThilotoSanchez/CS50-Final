@@ -75,7 +75,7 @@ def index():
         
         # get todays numbers to display in frontend
         # order: cases, deaths, tests
-        todays_numbers = todaysNrs(COUNTRY, today)
+        todays_numbers = todaysNrs(COUNTRY, today, last_updated)
 
         # create chart using chartJS
         labels, valuesCases, valuesDeaths = chartJS(COUNTRY)
