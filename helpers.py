@@ -12,7 +12,6 @@ from functools import wraps
 from urllib.request import urlopen
 import pytz
 import itertools
-from boto.s3.connection import S3Connection
 
 # ! Delrecated method, do not use
 # ? Questions?
@@ -61,8 +60,8 @@ def getCountries():
     # querystring = {"country": country}
 
     headers = {
-        'x-rapidapi-key': S3Connection(os.environ['x-rapidapi-key']),
-        'x-rapidapi-host': S3Connection(os.environ['x-rapidapi-host'])
+        'x-rapidapi-key': os.environ.get['x-rapidapi-key'],
+        'x-rapidapi-host': os.environ.get['x-rapidapi-host']
         }
 
     try:
@@ -94,6 +93,7 @@ def getCountries():
     except Exception as err:
         print(f'Other error occurred: {err}')
 
+
 def getStatistics(country):
     """ Calls the COVID-19 statistics API. It delivers todays stats for a specific country """
     
@@ -117,8 +117,8 @@ def getStatistics(country):
     querystring = {"country": country}
 
     headers = {
-        'x-rapidapi-key': S3Connection(os.environ['x-rapidapi-key']),
-        'x-rapidapi-host': S3Connection(os.environ['x-rapidapi-host'])
+        'x-rapidapi-key': os.environ.get['x-rapidapi-key'],
+        'x-rapidapi-host': os.environ.get['x-rapidapi-host']
         }
 
     try:
@@ -142,11 +142,8 @@ def getStatistics(country):
     conn = sqlite3.connect('cov19db.sqlite')
     db = conn.cursor()
 
-    # update db
-    db.execute('''INSERT OR IGNORE INTO overview
-        ( country_id, new, active, critical, recovered, day ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ? )''',
-        ( total, POP_1M, daytime, country_id, new, active, critical, recovered, day, ))
-    conn.commit()
+    # TODO: update db
+
 
 def getHistory(country):
     
@@ -160,8 +157,8 @@ def getHistory(country):
     querystring = {"country": country}
     
     headers = {
-        'x-rapidapi-key': S3Connection(os.environ['x-rapidapi-key']),
-        'x-rapidapi-host': S3Connection(os.environ['x-rapidapi-host'])
+        'x-rapidapi-key': os.environ.get['x-rapidapi-key'],
+        'x-rapidapi-host': os.environ.get['x-rapidapi-host']
         }
 
     response = requests.request("GET", url, headers=headers, params=querystring)

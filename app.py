@@ -11,7 +11,7 @@ from datetime import datetime, date
 import itertools
 import sqlite3
 
-from helpers import login_required, apology, getCountries, getStatistics, getHistory, checkCountries, checkHistory, chartJS, todaysNrs
+from helpers import apology, getHistory, checkCountries, checkHistory, chartJS, todaysNrs
 
 # configure application
 app = Flask(__name__)
