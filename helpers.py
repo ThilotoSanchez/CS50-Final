@@ -12,6 +12,7 @@ from functools import wraps
 from urllib.request import urlopen
 import pytz
 import itertools
+from boto.s3.connection import S3Connection
 
 # ! Delrecated method, do not use
 # ? Questions?
@@ -60,8 +61,8 @@ def getCountries():
     # querystring = {"country": country}
 
     headers = {
-        'x-rapidapi-key': os.getenv('x-rapidapi-key'),
-        'x-rapidapi-host': os.getenv('x-rapidapi-host')
+        'x-rapidapi-key': S3Connection(os.environ['x-rapidapi-key']),
+        'x-rapidapi-host': S3Connection(os.environ['x-rapidapi-host'])
         }
 
     try:
@@ -116,8 +117,8 @@ def getStatistics(country):
     querystring = {"country": country}
 
     headers = {
-        'x-rapidapi-key': os.getenv('x-rapidapi-key'),
-        'x-rapidapi-host': os.getenv('x-rapidapi-host')
+        'x-rapidapi-key': S3Connection(os.environ['x-rapidapi-key']),
+        'x-rapidapi-host': S3Connection(os.environ['x-rapidapi-host'])
         }
 
     try:
@@ -157,10 +158,12 @@ def getHistory(country):
     # make API request
     url = "https://covid-193.p.rapidapi.com/history"
     querystring = {"country": country}
+    
     headers = {
-        'x-rapidapi-key': os.getenv('x-rapidapi-key'),
-        'x-rapidapi-host': os.getenv('x-rapidapi-host')
+        'x-rapidapi-key': S3Connection(os.environ['x-rapidapi-key']),
+        'x-rapidapi-host': S3Connection(os.environ['x-rapidapi-host'])
         }
+
     response = requests.request("GET", url, headers=headers, params=querystring)
     # response.raise_for_status()
 
